@@ -2,11 +2,15 @@
 An implementation of support vector machine (SVM) in tensorflow 2.x. 
 
 ## Install
-
+On your machine:
 ```bash
 git clone https://github.com/AryaAftab/svm-tensorflow.git
 cd svm-tensorflow/
 python setup.py install
+```
+On google-colab:
+```bash
+!pip install git+https://github.com/AryaAftab/svm-tensorflow.git
 ```
 
 ## Usage
