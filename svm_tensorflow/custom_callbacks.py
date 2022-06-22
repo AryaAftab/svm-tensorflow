@@ -2,7 +2,7 @@ import sys
 if 'ipykernel' in sys.modules:
     from tqdm.notebook import tqdm
 else:
-    from qtdm import tqdm
+    from tqdm import tqdm
 
 import math
 import tensorflow as tf
