@@ -1,5 +1,5 @@
 ## SVM - Tensorflow
-An implementation of support vector machine (SVM) in tensorflow 2.x. 
+An implementation of support vector machine (SVM) in tensorflow 2.x.
 
 ## Install
 On your machine:
@@ -36,6 +36,18 @@ n_train = int(0.8 * len(x))
 train_x, train_y = x[:n_train], y[:n_train]
 valid_x, valid_y = x[n_train:], y[n_train:]
 
+# Define metrics
+METRICS = [
+      tf.keras.metrics.TruePositives(name='tp'),
+      tf.keras.metrics.FalsePositives(name='fp'),
+      tf.keras.metrics.TrueNegatives(name='tn'),
+      tf.keras.metrics.FalseNegatives(name='fn'),
+      tf.keras.metrics.BinaryAccuracy(name='accuracy'),
+      tf.keras.metrics.Precision(name='precision'),
+      tf.keras.metrics.Recall(name='recall'),
+      tf.keras.metrics.AUC(name='auc'),
+      tf.keras.metrics.AUC(name='prc', curve='PR'), # precision-recall curve
+]
 
 # Define Bone, if you want linear svm, you can pass None to SVMTrainer as bone
 Bone = tf.keras.models.Sequential([
@@ -46,14 +58,14 @@ Bone = tf.keras.models.Sequential([
 
 svm_model = SVMTrainer(num_class=2, bone=Bone)
 svm_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-2),
-                  metrics=["accuracy"])
+                  metrics=METRICS)
 
 # Callbacks
-epochs = 50
+epochs = 200
 show_progress = ShowProgress(epochs)
 best_weight = BestModelWeights()
 
-#Train 
+# Train
 history = svm_model.fit(train_x, train_y,
                         epochs=epochs, validation_data=(valid_x, valid_y),
                         callbacks=[show_progress, best_weight],
@@ -62,12 +74,44 @@ history = svm_model.fit(train_x, train_y,
 ```
 ### Plot result and boundary:
 ```python
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+# Helper function for plot metrics
+def plot_metrics(history):
+    plt.figure(figsize=(12, 10))
+    metrics = ['loss', 'prc', 'accuracy', 'fp', 'precision', "tp", "recall", "tn", "auc", "fn"]
+
+    for n, metric in enumerate(metrics):
+
+        name = metric.replace("_"," ").capitalize()
+        plt.subplot(5, 2, n+1)
+
+        plt.plot(history.epoch,
+                 history.history[metric],
+                 color=colors[0],
+                 label='Train')
+
+        plt.plot(history.epoch,
+                 history.history['val_'+ metric],
+                 color=colors[1],
+                 #linestyle="--",
+                 label='Val')
+
+        plt.xlabel('Epoch')
+        plt.ylabel(name)
+
+        plt.legend();
+
+plot_metrics(history)
+
+
+plt.figure(figsize=(15, 10))
 Min = x.min(axis=0)
 Max = x.max(axis=0)
 
-a = np.linspace(Min[0], Max[0], 200)  
-b = np.linspace(Min[1], Max[1], 200)  
-xa, xb = np.meshgrid(a, b)  
+a = np.linspace(Min[0], Max[0], 200)
+b = np.linspace(Min[1], Max[1], 200)
+xa, xb = np.meshgrid(a, b)
 
 X = np.stack([xa, xb], axis=-1)
 X = np.reshape(X, [-1, 2])
@@ -78,29 +122,15 @@ bound = np.argmax(bound, axis=-1)
 class1 = X[bound == 0]
 class2 = X[bound == 1]
 
-
-plt.figure(figsize=(20, 10))
-
-plt.subplot(1,2,1)
-plt.plot(history.history["loss"])
-plt.plot(history.history["val_loss"])
-plt.ylabel("loss")
-plt.xlabel("epoch")
-
-plt.subplot(1,2,2)
-plt.plot(history.history["accuracy"])
-plt.plot(history.history["val_accuracy"])
-plt.ylabel("accuracy")
-plt.xlabel("epoch")
-
-
-plt.figure(figsize=(15, 10))
-
 plt.scatter(class1[:,0], class1[:,1])
 plt.scatter(class2[:,0], class2[:,1])
 
 plt.scatter(x[:,0], x[:,1])
 ```
-![1](https://user-images.githubusercontent.com/30603302/173213888-269484bd-091f-42df-ad37-56426683c842.png)
+<div align=center>
+<img width=95% src="https://user-images.githubusercontent.com/30603302/184471363-66d571a7-5ff6-4f52-8ace-9ee32560b8ae.png"/>
+</div>
 
-![2](https://user-images.githubusercontent.com/30603302/173213895-56a5f996-e0ec-4987-ba0a-abc17767935c.png)
+<div align=center>
+<img width=95% src="https://user-images.githubusercontent.com/30603302/184471244-57160568-c8c0-4f88-8c61-95e622c941e3.png"/>
+</div>

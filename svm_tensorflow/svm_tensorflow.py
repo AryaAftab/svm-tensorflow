@@ -32,7 +32,7 @@ class LinearSVC(layers.Layer):
         return tf.matmul(inputs, self.w) + self.b
 
     def get_config(self):
-        config = super(Linear, self).get_config()
+        config = super(LinearSVC, self).get_config()
         config.update({"num_classes": self.num_classes})
         return config
 
