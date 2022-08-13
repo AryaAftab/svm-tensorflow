@@ -109,6 +109,10 @@ class SVMTrainer(tf.keras.Model):
         # Update weights
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
         # Update metrics (includes the metric that tracks the loss)
+        if self.num_class == 2:
+            y = y[..., 1]
+            y_pred = tf.sigmoid(y_pred[..., 1])
+
         self.loss_tracker.update_state(loss)
         self.compiled_metrics.update_state(y, y_pred, sample_weight)
         # Return a dict mapping metric names to current value
@@ -132,6 +136,10 @@ class SVMTrainer(tf.keras.Model):
                 reg_loss=self.losses,
         )
         # Update the metrics.
+        if self.num_class == 2:
+            y = y[..., 1]
+            y_pred = tf.sigmoid(y_pred[..., 1])
+        
         self.loss_tracker.update_state(loss)
         self.compiled_metrics.update_state(y, y_pred)
         # Return a dict mapping metric names to current value.
