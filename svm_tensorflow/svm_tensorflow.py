@@ -1,3 +1,6 @@
+import types
+
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -152,3 +155,33 @@ class SVMTrainer(tf.keras.Model):
         # We list our `Metric` objects here so that `reset_states()` can be
         # called automatically at the start of each epoch or at the start of `evaluate()`.
         return [self.loss_tracker] + self.compiled_metrics.metrics
+
+
+    def save(self, model_path=None, input_shape=None):
+        input_shape = [1] + input_shape 
+        dumy_input = np.random.rand(*input_shape)
+
+
+        dumy_body_output = self.bone(dumy_input)
+        dumy_head_output = self.linear_svc(dumy_body_output)
+
+
+        head_part = layers.Dense(units=dumy_head_output.shape[-1], activation="sigmoid")
+        _ = head_part(dumy_body_output)
+        head_part.set_weights(self.linear_svc.get_weights())
+
+
+        if isinstance(self.bone, types.FunctionType):
+            body_part = layers.Lambda(lambda x: self.bone(x))
+        else:
+            body_part = self.bone
+
+
+        input_shape.pop(0)
+        inputs = layers.Input(shape=input_shape)
+        x = body_part(inputs)
+        x = head_part(x)
+
+
+        model = tf.keras.models.Model(inputs, x)
+        model.save(model_path)
